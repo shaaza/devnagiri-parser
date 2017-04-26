@@ -73,3 +73,23 @@
         latin (map #(nth % n) devnagri-consonants)
         pairs (interleave latin devnagiri)]
     (apply hash-map pairs)))
+
+
+
+(defn to-devnagri [s ms]
+  (loop [current-parse []
+         x s]
+    (let [[a b c & r] (seq x)]
+      (if-let [three  (get m (str a b c))]
+        (recur (conj current-parse three) r)
+        (if-let [two  (get m (str a b))]
+          (recur (conj current-parse three) (str c r))
+          (if-let [one  (get m (str a))]
+            (recur (conj current-parse one) (str b c r))
+            )
+          )
+        )
+      )
+    )
+  )
+
