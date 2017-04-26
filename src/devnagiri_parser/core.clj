@@ -22,8 +22,6 @@
    ["अः"	"ḥ"	"ḥ"	"H"	"H"	".h"	"H"]
    ["अँ" "--" "--" "--" ".N" "--" "~" ]])
 
-
-
 (def devnagri-consonants [
                           ["Devanāgarī"	"IAST"	"ISO" "15919"	"Harvard-Kyoto"	"ITRANS"	"Velthuis"	"SLP1"]
                           ["क"	"ka"	"ka"	"ka"	"ka"	"ka"	"ka"]
@@ -60,36 +58,55 @@
                           ["स"	"sa"	"sa"	"sa"	"sa"	"sa"	"sa"]
                           ["ह"	"ha"	"ha"	"ha"	"ha"	"ha"	"ha"]])
 
-
 (def irregular-consonant-clusters
   [["क्ष"	"kṣa"	"kSa"	["kSa" "kSha" "xa"]	"k.sa"	"kza"]
    ["त्र"	"tra"	"tra"	"tra"	"tra"	"tra"]
    ["ज्ञ"	"jña"	"jJa"	["GYa" "j~na"]	"j~na"	"jYa"]
    ["श्र"	"śra"	"zra"	"shra"	"sra"	"Sra"]])
 
+
+
+(def devnagri-table
+  (concat devnagri-vowel-table devnagri-consonants irregular-consonant-clusters))
+
 (defn mapping
   [n]
-  (let [devnagiri (map first devnagri-consonants)
-        latin (map #(nth % n) devnagri-consonants)
+  (let [devnagiri (map first devnagri-table)
+        latin (map #(nth % n) devnagri-table)
         pairs (interleave latin devnagiri)]
     (apply hash-map pairs)))
 
 
 
-(defn to-devnagri [s ms]
+(def m1 (mapping 1))
+
+
+(println m1)
+
+(defn to-devnagri [s m]
   (loop [current-parse []
          x s]
-    (let [[a b c & r] (seq x)]
-      (if-let [three  (get m (str a b c))]
-        (recur (conj current-parse three) r)
-        (if-let [two  (get m (str a b))]
-          (recur (conj current-parse three) (str c r))
-          (if-let [one  (get m (str a))]
-            (recur (conj current-parse one) (str b c r))
-            )
-          )
-        )
-      )
+    (println current-parse )
+    (println x)
+    (if (>= 0 (count (seq x)))
+      current-parse
+      (if-let [three  (get m (apply str (take 3 x)))]
+        (recur (conj current-parse three) (apply str (drop 3 x)))
+        (if-let [two  (get m (apply str (take 2 x)))]
+          (recur (conj current-parse two) (apply str (drop 2 x)))
+          (if-let [one  (get m (apply str (take 1 x)))]
+            (recur (conj current-parse one) (apply str (drop 1 x)))
+            (recur (conj current-parse [:fail x]) (apply str (drop 1 x)))
+            ) 
+          ) 
+        ))
     )
   )
+
+(def k "kharaharapriyA")
+
+
+(apply str (drop 1 "aa"))
+
+(to-devnagri k (mapping 1))
 
