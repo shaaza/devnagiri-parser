@@ -1,5 +1,7 @@
 (ns devnagiri-parser.core
-  (:require [clojure.spec :as s]))
+  (:require [clojure.spec :as s]
+            [clojure.pprint :refer [pprint]]
+            [devnagiri-parser.read-test-data :refer [classifications test-data]]))
 
 (def devnagri-vowel-table
   [
@@ -23,6 +25,7 @@
    ["अः"	"ḥ"	"ḥ"	"H"	"H"	".h"	"H"]
    ["अँ" "--" "--" "--" ".N" "--" "~" ]])
 
+
 (def transliteration-schemes
   {:devanagari    0
    :iast	  1
@@ -31,6 +34,9 @@
    :itrans        4
    :velthuis      5
    :slp1          6})
+
+
+(s/def ::scheme (set (keys transliteration-schemes)))
 
 (def devnagri-consonants [
                           ["क"	"ka"	"ka"	"ka"	"ka"	"ka"	"ka"]
@@ -119,12 +125,18 @@
             (recur current-parse (apply str (drop 1 x)))))))))
 
 
+(s/def ::parse-args (s/cat :scheme ::scheme
+                           :transliterated-word string?))
+
 (defn parse-devanagari
-  [string scheme]
-  (let [scheme-no (scheme transliteration-schemes)]
-    (apply str (to-devnagri string
-                            (mapping scheme-no devnagri-table)
-                            false))))
+  ([string] (parse-devanagari :itrans string))
+  ([scheme string]
+   (let [scheme-no (scheme transliteration-schemes)]
+     (apply str (to-devnagri string
+                             (mapping scheme-no devnagri-table)
+                             false)))))
+
+
 
 (def k "kharaharapriyA")
 
@@ -136,6 +148,9 @@
 
 
 
+;; (map parse-devanagari ragam-names)
+
+
 
 (s/def ::set-of-strings (s/coll-of string? :kind set?))
 
@@ -145,5 +160,9 @@
 
 
 
+(pprint (test-data))
 
-
+(let [rt (group-by parse-devanagari (test-data))
+      ]
+rt
+  )
