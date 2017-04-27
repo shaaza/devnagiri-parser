@@ -1,0 +1,11 @@
+* scheme 
+** group-by-devnagiri 
+
+get all the devnagiri matches 
+** get sets to compare against 
+
+(let [devterm-map (group-by devnagiri-parse terms)]
+[set-count (group-by (comp count second) devterm-map) 
+unmatched (get set-count 1)] 
+
+(for [[devterm [transliteration]  
