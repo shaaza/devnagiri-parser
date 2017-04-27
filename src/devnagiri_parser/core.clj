@@ -86,7 +86,7 @@
     true (conj acc elem)))
 
 (defn add-extra-match
-  "Given a string like 'la', returns ['k' 'ka']"
+  "Given a string like 'ka', returns ['k' 'ka']"
   [string]
   (if (= \a (last (seq string)))
     [(apply str (butlast string)) string]
@@ -101,11 +101,13 @@
         pairs-without-vecs (reduce remove-vector-keys [] pairs)]
     (apply hash-map (flatten pairs-without-vecs))))
 
-(defn to-devnagri [s m]
+(defn to-devnagri
+  [s m print?]
   (loop [current-parse []
          x s]
-    (println current-parse )
-    (println x)
+    (when print?
+      (println current-parse )
+      (println x))
     (if (>= 0 (count (seq x)))
       current-parse
       (if-let [three  (get m (apply str (take 3 x)))]
@@ -114,14 +116,15 @@
           (recur (conj current-parse two) (apply str (drop 2 x)))
           (if-let [one  (get m (apply str (take 1 x)))]
             (recur (conj current-parse one) (apply str (drop 1 x)))
-            (recur (conj current-parse [:fail x]) (apply str (drop 1 x)))))))))
+            (recur current-parse (apply str (drop 1 x)))))))))
 
 
 (defn parse-devanagari
   [string scheme]
   (let [scheme-no (scheme transliteration-schemes)]
     (apply str (to-devnagri string
-                            (mapping scheme-no devnagri-table)))))
+                            (mapping scheme-no devnagri-table)
+                            false))))
 
 (def k "kharaharapriyA")
 
