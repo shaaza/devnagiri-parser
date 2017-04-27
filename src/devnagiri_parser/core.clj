@@ -1,4 +1,5 @@
-(ns devnagiri-parser.core)
+(ns devnagiri-parser.core
+  (:require [clojure.spec :as s]))
 
 (def devnagri-vowel-table
   [
@@ -124,5 +125,22 @@
 
 (def k "kharaharapriyA")
 
+
+
+
 (def ragam-names ["Yadukulakaambhoji" "yadukula kAmbhOji" "yadukulakAmbhOji"
     "yadukula kAmbhOdi" "yadukula kaambhOji"])
+
+
+
+
+(s/def ::set-of-strings (s/coll-of string? :kind set?))
+
+(s/def ::devnagri-parse-map (s/map-of string? ::set-of-strings))
+
+;;; we need to get all the rags from db here
+
+
+
+
+
