@@ -1,4 +1,4 @@
-(ns devnagiri-parser.levensthein)
+(ns devnagiri-parser.leven)
 
 (defn nextelt
   "Given two characters, the previous row, and a row we are
@@ -41,7 +41,7 @@
 
 
 (defn find-levenshtein
-  "Takes a value a word and a set and returns a set of all the words that are within the levensthein diff of value to that word"
+  "Takes a value a word and a set and returns a set of all the words that are within the  diff of value to that word"
   [n w s]
   (filter #(>= n (levenshtein w %)) s))
 

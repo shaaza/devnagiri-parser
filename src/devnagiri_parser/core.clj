@@ -1,7 +1,9 @@
 (ns devnagiri-parser.core
   (:require [clojure.spec :as s]
+            [devnagiri-parser.leven :as l]
             [clojure.pprint :refer [pprint]]
             [devnagiri-parser.read-test-data :refer [classifications test-data]]))
+
 
 (def devnagri-vowel-table
   [
@@ -152,17 +154,80 @@
 
 
 
-(s/def ::set-of-strings (s/coll-of string? :kind set?))
+(s/def ::coll-of-strings (s/coll-of string?))
 
-(s/def ::devnagri-parse-map (s/map-of string? ::set-of-strings))
+(s/def ::devnagri-parse-map (s/map-of string? ::coll-of-strings))
 
 ;;; we need to get all the rags from db here
 
 
 
-(pprint (test-data))
+;; (pprint (test-data))
 
-(let [rt (group-by parse-devanagari (test-data))
-      ]
-rt
-  )
+(s/def ::devnagri-string string?)
+
+(s/def ::test-map
+  (s/map-of ::devnagri-string
+            (s/map-of integer? ::coll-of-strings)))
+
+
+(defn setmap []
+  (let [rt (group-by parse-devanagari (test-data))
+        set-count (group-by (comp count second) rt)
+        sets (take 2 (sort-by (comp count second) set-count))
+        samples (mapcat second sets)
+        setmap
+        (apply merge (for [[s x] samples]
+                       {s {0 x}}))]
+    setmap))
+
+
+
+(defn deep-merge [a b]
+  (merge-with (fn [x y]
+                (cond (map? y) (deep-merge x y)
+                      (set? y) (set (concat x y))
+                      :else y))
+              a b))
+
+
+
+(defn parse-tests []
+  (let [rt (group-by parse-devanagari (test-data))
+        set-count (group-by (comp count second) rt)
+        sets (take 2 (sort-by (comp count second) set-count))
+        samples (mapcat second sets)
+        setmap
+        (apply merge (for [[s x] samples]
+                       {s {0 (set x)}}
+                       ))
+        single-items (get set-count 1)
+        unmatched (atom #{})
+        _
+        (assert (s/valid? ::test-map setmap))
+        results 
+        (for [[unmatched-devnagri-term [w] :as um] (take 5 single-items)]
+          (for [[dev-match-term match-map] setmap]
+            (let [l (l/levenshtein dev-match-term unmatched-devnagri-term)]
+              ;; (println "match" l)
+              ;; (println unmatched-devnagri-term )
+              (if (>= 2 l)
+                (update-in match-map [l] (fnil conj []) [w] )
+                (swap! unmatched conj um)
+                )
+              )
+            )
+          )]
+
+   {:results results
+    :failures @unmatched}
+   ))
+
+
+(for [x {:a 1}]
+  x)
+
+;; (def all-tests (parse-tests))
+
+
+(parse-tests )
